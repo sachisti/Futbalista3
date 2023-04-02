@@ -1,0 +1,9 @@
+Vsesmerove koliesko bolo vymodelovane na TinkerCADe:
+  https://www.tinkercad.com/things/4qCo3ZYxfgo
+Vnutri su kovove kolicky, ktore sme kupili v Spojovacom materiali.
+Navrchu su navlecene bezne kruzkove tesnenia zo zeleziarstva.
+
+Dizajn bol inspirovany (a ciastocne prerobeny) z povodneho modelu CodeRunners: https://www.thingiverse.com/thing:2333324
+
+(tam sa nachadzaju aj valceky, ktore sa tocia na kolickoch
+aj presna specifikacia kolickov a kruzkovych tesneni)
