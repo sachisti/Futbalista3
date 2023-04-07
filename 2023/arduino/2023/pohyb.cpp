@@ -310,27 +310,33 @@ void obrat_smer()
 }
 
 
-void test_left_motor() {
+void test_left_motor(int where) {
+  if (where == 0) where = LFWD;
+  else where = LBWD;
   motor_speed(ML, 10);
-  motor_smer(ML, LBWD);
+  motor_smer(ML, where);
   motor_speed(MR, 0);
   motor_smer(MR, RBWD);
   motor_speed(MB, 0);
   motor_smer(MB, BRT);
 }
 
-void test_right_motor() {
+void test_right_motor(int where) {
+  if (where == 0) where = RFWD;
+  else where = RBWD;
   motor_speed(MR, 10);
-  motor_smer(MR, LFWD);
+  motor_smer(MR, where);
   motor_speed(ML, 0);
   motor_smer(ML, RBWD);
   motor_speed(MB, 0);
   motor_smer(MB, BRT);
 }
 
-void test_back_motor() {
+void test_back_motor(int where) {
+  if (where == 0) where = BLT;
+  else where = BRT;
   motor_speed(MB, 10);
-  motor_smer(MB, BLT);
+  motor_smer(MB, where);
   motor_speed(MR, 0);
   motor_smer(MR, RBWD);
   motor_speed(ML, 0);
