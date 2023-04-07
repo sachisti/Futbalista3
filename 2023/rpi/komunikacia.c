@@ -93,6 +93,7 @@ void precitaj_paket_z_arduina()
     unsigned char ch;
     int precital;
 
+    if (arduino_inicializovane == 0) zapis_paket_do_arduina("45");
     do
     {
   
