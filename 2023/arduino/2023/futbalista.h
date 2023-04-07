@@ -25,6 +25,10 @@ void motor_smer(uint8_t motor, uint8_t smer);
 void test_motors2();
 void test_motors();
 
+void test_left_motor();
+void test_right_motor();
+void test_back_motor();
+
 
 // vypinace
 

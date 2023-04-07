@@ -50,6 +50,13 @@ void spracuj_paket()
   else if (a == 22) dolava();
   else if (a == 23) dopredu();
   else if (a == 24) dokola();
+
+  else if (a == 41) test_left_motor();
+  else if (a == 42) test_right_motor();
+  else if (a == 43) test_back_motor();
+
+  else if (a == 45) setup_komunikacia();
+  
 }
 
 void precitaj_dalsi_znak()
