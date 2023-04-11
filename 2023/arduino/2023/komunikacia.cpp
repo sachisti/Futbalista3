@@ -60,6 +60,7 @@ void spracuj_paket()
   else if (a == 53) test_back_motor(1);
 
   else if (a == 45) setup_komunikacia();
+  //else if (a == 46) test_kompas();
   
 }
 

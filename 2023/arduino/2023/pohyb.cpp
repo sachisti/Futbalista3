@@ -20,8 +20,8 @@
 
 #define LFWD 0
 #define LBWD 1
-#define RFWD 1
-#define RBWD 0
+#define RFWD 0
+#define RBWD 1
 #define BRT  0
 #define BLT  1
 

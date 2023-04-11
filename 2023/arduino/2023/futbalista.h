@@ -46,6 +46,8 @@ int vidi_ciaru();
 // kompas
 
 void setup_kompas();
+int kompas();
+void test_kompas();
 
 // komunikacia
 

@@ -8,7 +8,7 @@ void setup()
   setup_vypinace();
   setup_pohyb();
   setup_senzory();
-  setup_kompas();
+  //setup_kompas();
   setup_strategia();
   setup_komunikacia();  
 }
@@ -16,10 +16,13 @@ void setup()
 void loop()
 {
   komunikacia();
+  
   strategia();
+  
   kontrola_senzorov();
+  
   if (start_on())
-  {
+  {   
     zastav();
     while (start_on());
   }

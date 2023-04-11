@@ -1,4 +1,4 @@
-#include "I2Cdev.h"
+
 #include <Adafruit_BMP085.h>
 #include <HMC5883L_Simple.h>
 #include <MPU6050.h>
@@ -15,17 +15,18 @@ void setup_kompas()
 {
   Wire.begin();
   // initialize devices
-  Serial.println("Initializing I2C devices...");
+  Serial.println("$I2Cini");
 
   // initialize bmp085
-  //if (!bmp.begin()) {
-  //  Serial.println("Could not find a valid BMP085 sensor, check wiring!");
-  //  while (1) {}
-  //}
+  if (!bmp.begin()) {
+    Serial.println("$BMPerr");
+    while (1) {}
+  }
 
+  delay(20);
   // initialize mpu6050
   accelgyro.initialize();
-  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+  Serial.println(accelgyro.testConnection() ? "$MPUok" : "$MPUfail");
   accelgyro.setI2CBypassEnabled(true); // set bypass mode for gateway to hmc5883L
   
   
@@ -39,4 +40,10 @@ void setup_kompas()
 int kompas()
 {
    return (int) Compass.GetHeadingDegrees();
+}
+
+void test_kompas()
+{
+   Serial.print("$");
+   Serial.println(kompas());
 }
