@@ -2,6 +2,13 @@
 #include <EEPROM.h> 
 #include "futbalista.h"
 
+//A0 - zadne kolo pravy
+//A1 - prave kolo zadny
+//A2 - prave kolo predny
+//A3 - lave kolo predny
+//A6 - zadne kolo lavy
+//A7 - lave kolo zadny
+
 int val = 0;
 int min[6], max[6], prah[6];
 
@@ -11,6 +18,7 @@ void nacitaj_kalibraciu_z_EEPROM()
   {  
     prah[i] = EEPROM.read(i * 2) + (EEPROM.read(i * 2 + 1) << 8);
   }  
+  Serial.println("$loadedcalib");
 }
 
 void zapis_kalibraciu_do_EEPROM()
@@ -20,6 +28,7 @@ void zapis_kalibraciu_do_EEPROM()
     EEPROM.write(i * 2, prah [i]&255);
     EEPROM.write(i * 2 + 1, prah [i]>>8);
   }
+  Serial.println("$donecalib");
 }
 
 void test_senzorov()

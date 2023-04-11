@@ -2,8 +2,8 @@
 #include "futbalista.h"
 
 
-#define M1_IN1 5
-#define M1_IN2 4
+#define M1_IN1 4
+#define M1_IN2 5
 
 #define M2_IN1 6
 #define M2_IN2 7
@@ -14,16 +14,16 @@
 // 1 - back
 // 2 - right
 // 3 - left
-#define ML  3
-#define MR  2
-#define MB  1
+#define ML  2
+#define MR  1
+#define MB  3
 
 #define LFWD 0
 #define LBWD 1
 #define RFWD 1
 #define RBWD 0
-#define BRT  1
-#define BLT  0
+#define BRT  0
+#define BLT  1
 
 // kam ide
 #define IDE_VPRAVO       1
@@ -309,7 +309,40 @@ void obrat_smer()
   }
 }
 
-  
+
+void test_left_motor(int where) {
+  if (where == 0) where = LFWD;
+  else where = LBWD;
+  motor_speed(ML, 10);
+  motor_smer(ML, where);
+  motor_speed(MR, 0);
+  motor_smer(MR, RBWD);
+  motor_speed(MB, 0);
+  motor_smer(MB, BRT);
+}
+
+void test_right_motor(int where) {
+  if (where == 0) where = RFWD;
+  else where = RBWD;
+  motor_speed(MR, 10);
+  motor_smer(MR, where);
+  motor_speed(ML, 0);
+  motor_smer(ML, RBWD);
+  motor_speed(MB, 0);
+  motor_smer(MB, BRT);
+}
+
+void test_back_motor(int where) {
+  if (where == 0) where = BLT;
+  else where = BRT;
+  motor_speed(MB, 10);
+  motor_smer(MB, where);
+  motor_speed(MR, 0);
+  motor_smer(MR, RBWD);
+  motor_speed(ML, 0);
+  motor_smer(ML, LFWD);
+}
+
 void riadenie_cez_seriovy_port()
 {
   if (Serial.available() > 0)
