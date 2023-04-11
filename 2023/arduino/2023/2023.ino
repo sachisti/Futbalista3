@@ -8,6 +8,7 @@ void setup()
   setup_vypinace();
   setup_pohyb();
   setup_senzory();
+  setup_kompas();
   setup_strategia();
   setup_komunikacia();  
 }

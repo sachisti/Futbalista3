@@ -93,7 +93,8 @@ int hlavny_program()
 
     do {
         printf("presov> ");
-        scanf("%d", &a);
+        fgets(sprava, 5, stdin);
+        sscanf(sprava, "%d", &a);
         if (a == 0) navod();
 	else if (a == 9) test_kamery();
         else

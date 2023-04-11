@@ -39,8 +39,11 @@ void setup_senzory();
 void test_senzorov();
 int vidi_ciaru();
 
-// komunikacia
+// kompas
 
+void setup_kompas();
+
+// komunikacia
 
 void setup_komunikacia();
 void komunikacia();        // treba volat v hlavnej slucke casto
