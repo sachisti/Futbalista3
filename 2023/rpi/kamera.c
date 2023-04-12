@@ -17,6 +17,14 @@
 
 //#define POUZI_YUV
 
+
+// veci co sa hladaju:
+
+#define VEC_LOPTA         0
+#define VEC_ZLTA_BRANKA   1
+#define VEC_MODRA_BRANKA  2
+
+
 uint8_t *buffer;
 
 int sirka = 320;
@@ -95,7 +103,7 @@ int init_mmap(int fd)
     return 0;
 }
 
-int je_lopta (uint8_t r, uint8_t g, uint8_t b)
+int je_vec (uint8_t r, uint8_t g, uint8_t b, int vec)
 {
 
   float h, s, v, max, min;
@@ -156,9 +164,27 @@ int je_lopta (uint8_t r, uint8_t g, uint8_t b)
   if (h < 0){
     h = h + 360;
   }
-  if (((h < 28) || (h > 348)) && s > 0.5 && v > 100){
-    return 1;
+  
+  if (vec == VEC_LOPTA)
+  {    
+    if ((h < 30) && (h > 9) && (s > 0.65) && (v > 75)){
+      return 1;
+    }
   }
+  else if (vec == VEC_MODRA_BRANKA)
+  {
+     if (((h > 219) && (h < 231)) && (s > 0.65) && (v > 88) && (v < 150)){
+      return 1;
+    }    
+  }
+  else if (vec == VEC_ZLTA_BRANKA)
+  {
+     if (((h > 47) && (h < 65)) && (s > 0.6) && (v > 120)){
+      return 1;
+      
+    }
+  }
+    
   return 0;
 }
 
@@ -179,7 +205,7 @@ void zisti_rgb(int riadok, int stlpec, uint8_t *r, uint8_t *g, uint8_t *b)
 #endif
 }
 
-int fill(int riadok, int stlpec)
+int fill(int riadok, int stlpec, int vec)
 {
   if (riadok < minr) minr = riadok;
   if (riadok > maxr) maxr = riadok;
@@ -195,23 +221,23 @@ int fill(int riadok, int stlpec)
   zisti_rgb(riadok, stlpec + 1, &r, &g, &b);
   int kolko = 1;
   
-  if (je_lopta(r, g, b))
-    kolko += fill(riadok, stlpec + 1);
+  if (je_vec(r, g, b, vec))
+    kolko += fill(riadok, stlpec + 1, vec);
 
   zisti_rgb(riadok, stlpec - 1, &r, &g, &b);
   
-  if (je_lopta(r, g, b))
-    kolko += fill(riadok, stlpec - 1);
+  if (je_vec(r, g, b, vec))
+    kolko += fill(riadok, stlpec - 1, vec);
 
   zisti_rgb(riadok - 1, stlpec, &r, &g, &b);
     
-  if (je_lopta(r, g, b))
-    kolko += fill(riadok - 1, stlpec);
+  if (je_vec(r, g, b, vec))
+    kolko += fill(riadok - 1, stlpec, vec);
 
   zisti_rgb(riadok + 1, stlpec, &r, &g, &b);
   
-  if (je_lopta(r, g, b))
-    kolko += fill(riadok + 1, stlpec);
+  if (je_vec(r, g, b, vec))
+    kolko += fill(riadok + 1, stlpec, vec);
 
   return kolko;
 }
@@ -237,7 +263,10 @@ int init_sledovanie()
     }
 }
  
-void najdi_loptu(int *sirka_lopty, int *vyska_lopty, int *velkost_lopty, int *riadok, int *stlpec)
+void najdi_veci(int *sirka_lopty, int *vyska_lopty, int *velkost_lopty, int *riadok_lopty, int *stlpec_lopty,
+               int *sirka_zltej_branky, int *vyska_zltej_branky, int *velkost_zltej_branky, int *riadok_zltej_branky, int *stlpec_zltej_branky,
+               int *sirka_modrej_branky, int *vyska_modrej_branky, int *velkost_modrej_branky, int *riadok_modrej_branky, int *stlpec_modrej_branky)
+
 {
       if(-1 == xioctl(kamera_fd, VIDIOC_QBUF, &buf))
       {
@@ -304,13 +333,13 @@ void najdi_loptu(int *sirka_lopty, int *vyska_lopty, int *velkost_lopty, int *ri
          buffer[index_zaciatku_dolneho_riadku + i * 3 + 2] = 0;
       }      
 
-      int doteraz_najvacsi = 0;
-      int doteraz_najv_sirka = 0;
-      int doteraz_najv_vyska = 0;
-      int doteraz_najv_riadok = 0;
-      int doteraz_najv_stlpec = 0;
+      int doteraz_najvacsi[3] = { 0, 0, 0 };
+      int doteraz_najv_sirka[3] = { 0, 0, 0 };
+      int doteraz_najv_vyska[3] = { 0, 0, 0 };
+      int doteraz_najv_riadok[3] = { 0, 0, 0 };
+      int doteraz_najv_stlpec[3] = { 0, 0, 0 };
       
-      for (int i = 0; i < vyska; i++)
+      for (int i = 0; i < vyska * 2 / 3; i++)
         for (int j = 0; j < sirka; j++)
         {
 #ifdef POUZI_YUV
@@ -322,28 +351,67 @@ void najdi_loptu(int *sirka_lopty, int *vyska_lopty, int *velkost_lopty, int *ri
   	      uint8_t g = *(p++);
   	      uint8_t r = *(p++);
 #endif
-  	      if (je_lopta(r, g, b))
+  	      if (je_vec(r, g, b, VEC_LOPTA))
   	      {
-                  mins = sirka, minr = vyska, maxs = -1, maxs = -1;
-                  int pocet = fill(i, j);
-                  if (pocet > doteraz_najvacsi)
+                  mins = sirka, minr = vyska, maxs = -1, maxr = -1;
+                  int pocet = fill(i, j, VEC_LOPTA);
+                  if (pocet > doteraz_najvacsi[VEC_LOPTA])
                   {
-                      doteraz_najvacsi = pocet;
-                      doteraz_najv_sirka = maxs - mins + 1;
-                      doteraz_najv_vyska = maxr - minr + 1;
-                      doteraz_najv_riadok = (maxr + minr) / 2;
-                      doteraz_najv_stlpec = (maxs + mins) / 2;
+                      doteraz_najvacsi[VEC_LOPTA] = pocet;
+                      doteraz_najv_sirka[VEC_LOPTA] = maxs - mins + 1;
+                      doteraz_najv_vyska[VEC_LOPTA] = maxr - minr + 1;
+                      doteraz_najv_riadok[VEC_LOPTA] = (maxr + minr) / 2;
+                      doteraz_najv_stlpec[VEC_LOPTA] = (maxs + mins) / 2;
                   }
   	      }
+          else if (je_vec(r, g, b, VEC_MODRA_BRANKA))
+          {
+                  mins = sirka, minr = vyska, maxs = -1, maxr = -1;
+                  int pocet = fill(i, j, VEC_MODRA_BRANKA);
+                  if (pocet > doteraz_najvacsi[VEC_MODRA_BRANKA])
+                  {
+                      doteraz_najvacsi[VEC_MODRA_BRANKA] = pocet;
+                      doteraz_najv_sirka[VEC_MODRA_BRANKA] = maxs - mins + 1;
+                      doteraz_najv_vyska[VEC_MODRA_BRANKA] = maxr - minr + 1;
+                      doteraz_najv_riadok[VEC_MODRA_BRANKA] = (maxr + minr) / 2;
+                      doteraz_najv_stlpec[VEC_MODRA_BRANKA] = (maxs + mins) / 2;
+                  }
+          }
+          else if (je_vec(r, g, b, VEC_ZLTA_BRANKA))
+          {
+                  mins = sirka, minr = vyska, maxs = -1, maxr = -1;
+                  int pocet = fill(i, j, VEC_ZLTA_BRANKA);
+                  if (pocet > doteraz_najvacsi[VEC_ZLTA_BRANKA])
+                  {
+                      doteraz_najvacsi[VEC_ZLTA_BRANKA] = pocet;
+                      doteraz_najv_sirka[VEC_ZLTA_BRANKA] = maxs - mins + 1;
+                      doteraz_najv_vyska[VEC_ZLTA_BRANKA] = maxr - minr + 1;
+                      doteraz_najv_riadok[VEC_ZLTA_BRANKA] = (maxr + minr) / 2;
+                      doteraz_najv_stlpec[VEC_ZLTA_BRANKA] = (maxs + mins) / 2;
+                  }
+          }
         }
       //printf("velkost: %d, sirka: %d, vyska: %d\n", doteraz_najvacsi, 
       //         doteraz_najv_sirka, doteraz_najv_vyska);
 
-      *sirka_lopty = doteraz_najv_sirka;
-      *vyska_lopty = doteraz_najv_vyska;
-      *velkost_lopty = doteraz_najvacsi;
-      *riadok = doteraz_najv_riadok;
-      *stlpec = doteraz_najv_stlpec;
+      *sirka_lopty = doteraz_najv_sirka[VEC_LOPTA];
+      *vyska_lopty = doteraz_najv_vyska[VEC_LOPTA];
+      *velkost_lopty = doteraz_najvacsi[VEC_LOPTA];
+      *riadok_lopty = doteraz_najv_riadok[VEC_LOPTA];
+      *stlpec_lopty = doteraz_najv_stlpec[VEC_LOPTA];
+
+      *sirka_zltej_branky = doteraz_najv_sirka[VEC_ZLTA_BRANKA];
+      *vyska_zltej_branky = doteraz_najv_vyska[VEC_ZLTA_BRANKA];
+      *velkost_zltej_branky = doteraz_najvacsi[VEC_ZLTA_BRANKA];
+      *riadok_zltej_branky = doteraz_najv_riadok[VEC_ZLTA_BRANKA];
+      *stlpec_zltej_branky = doteraz_najv_stlpec[VEC_ZLTA_BRANKA];
+
+      *sirka_modrej_branky = doteraz_najv_sirka[VEC_MODRA_BRANKA];
+      *vyska_modrej_branky = doteraz_najv_vyska[VEC_MODRA_BRANKA];
+      *velkost_modrej_branky = doteraz_najvacsi[VEC_MODRA_BRANKA];
+      *riadok_modrej_branky = doteraz_najv_riadok[VEC_MODRA_BRANKA];
+      *stlpec_modrej_branky = doteraz_najv_stlpec[VEC_MODRA_BRANKA];
+
       
       static int iter = 0;
       
@@ -364,11 +432,17 @@ void najdi_loptu(int *sirka_lopty, int *vyska_lopty, int *velkost_lopty, int *ri
 
 void test_kamery()
 {
-   int sirka, vyska, velkost, riadok, stlpec;
+   int sirka_lopty, vyska_lopty, velkost_lopty, riadok_lopty, stlpec_lopty;
+   int sirka_zltej_branky, vyska_zltej_branky, velkost_zltej_branky, riadok_zltej_branky, stlpec_zltej_branky;
+   int sirka_modrej_branky, vyska_modrej_branky, velkost_modrej_branky, riadok_modrej_branky, stlpec_modrej_branky;
 
-   najdi_loptu(&sirka, &vyska, &velkost, &riadok, &stlpec);
+   najdi_veci(&sirka_lopty, &vyska_lopty, &velkost_lopty, &riadok_lopty, &stlpec_lopty,
+              &sirka_zltej_branky, &vyska_zltej_branky, &velkost_zltej_branky, &riadok_zltej_branky, &stlpec_zltej_branky,
+              &sirka_modrej_branky, &vyska_modrej_branky, &velkost_modrej_branky, &riadok_modrej_branky, &stlpec_modrej_branky );
    
-   printf("s: %d, v: %d, P: %d, R: %d, S: %d\n", sirka, vyska, velkost, riadok, stlpec);
+   printf("lopta: s: %d, v: %d, P: %d, R: %d, S: %d\n", sirka_lopty, vyska_lopty, velkost_lopty, riadok_lopty, stlpec_lopty);
+   printf("zlta: s: %d, v: %d, P: %d, R: %d, S: %d\n", sirka_zltej_branky, vyska_zltej_branky, velkost_zltej_branky, riadok_zltej_branky, stlpec_zltej_branky);
+   printf("modra: s: %d, v: %d, P: %d, R: %d, S: %d\n-----\n", sirka_modrej_branky, vyska_modrej_branky, velkost_modrej_branky, riadok_modrej_branky, stlpec_modrej_branky);
 }
  
 int setup_kamera()

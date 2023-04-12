@@ -4,6 +4,7 @@
 #include "futbalista.h"
 
 uint8_t headless = 0;
+int opponent_color = YELLOW;
 
 void navod()
 {
@@ -65,14 +66,28 @@ int hra()
     zaloguj("futbalista bezi v headless rezime");
     
     do {
-        int sirka, vyska, velkost, riadok, stlpec;
-        najdi_loptu(&sirka, &vyska, &velkost, &riadok, &stlpec);
+        int sirka_lopty, vyska_lopty, velkost_lopty, riadok_lopty, stlpec_lopty;
+	int sirka_zltej_branky, vyska_zltej_branky, velkost_zltej_branky, riadok_zltej_branky, stlpec_zltej_branky;
+	int sirka_modrej_branky, vyska_modrej_branky, velkost_modrej_branky, riadok_modrej_branky, stlpec_modrej_branky;
 	
-	if (!stlpec) posli_nevidi_loptu();
-	if (velkost < 20) continue;
-	if (stlpec < 320 / 3) posli_lopta_vpravo();
-	else if (stlpec < 2 * 320 / 3) posli_lopta_vstrede();
-	else posli_lopta_vlavo();
+	najdi_veci(&sirka_lopty, &vyska_lopty, &velkost_lopty, &riadok_lopty, &stlpec_lopty,
+               &sirka_zltej_branky, &vyska_zltej_branky, &velkost_zltej_branky, &riadok_zltej_branky, &stlpec_zltej_branky,
+               &sirka_modrej_branky, &vyska_modrej_branky, &velkost_modrej_branky, &riadok_modrej_branky, &stlpec_modrej_branky);
+	
+	int je_pred_nami_nasa_branka = 0;
+	if ((opponent_color == BLUE) && (velkost_zltej_branky > 50))
+	   je_pred_nami_nasa_branka =1;
+	if ((opponent_color == YELLOW) && (velkost_modrej_branky > 50))
+	   je_pred_nami_nasa_branka =1;
+	   
+	if (!stlpec_lopty) posli_nevidi_loptu();
+	if (velkost_lopty < 10) continue;
+	if (stlpec_lopty < 320 / 3) posli_lopta_vpravo();
+	else if (stlpec_lopty < 2 * 320 / 3)
+	{
+	    if (je_pred_nami_nasa_branka) posli_nevidi_loptu();
+	    else posli_lopta_vstrede();
+	} else posli_lopta_vlavo();
 	
 	iter++;
 	if (iter % 100 == 0)
@@ -105,10 +120,29 @@ int hlavny_program()
     } while (a != 100);
 }
 
+void load_color()
+{
+    FILE *f = fopen("/home/robocup/opponent_color", "r");
+    char s[17];
+
+    fgets(s,15,f);
+    fclose(f);
+    if (strncmp(s, "yellow", 6) == 0) {
+	 opponent_color = YELLOW;
+	 printf("opponent: YELLOW\n");
+    }
+    else {
+	opponent_color = BLUE;
+	printf("opponent: BLUE\n");
+    }    
+}
+
+
 int main(int argc, char **argv)
 {
     if ((argc > 1) && (strcmp(argv[1], "headless") == 0)) headless = 1;
     
+    load_color();
     setup_log();
     setup_komunikacia();
     setup_kamera();
