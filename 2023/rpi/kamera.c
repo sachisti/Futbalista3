@@ -167,7 +167,7 @@ int je_vec (uint8_t r, uint8_t g, uint8_t b, int vec)
   
   if (vec == VEC_LOPTA)
   {    
-    if ((h < 30) && (h > 9) && (s > 0.65) && (v > 75)){
+    if ((h < 30) && (h > 0) && (s > 0.65) && (v > 75)){
       return 1;
     }
   }
