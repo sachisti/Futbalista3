@@ -177,7 +177,7 @@ int je_vec (uint8_t r, uint8_t g, uint8_t b, int vec)
   }
   else if (vec == VEC_MODRA_BRANKA)
   {
-     if (((h > 219) && (h < 231)) && (s > 0.65) && (v > 88) && (v < 150)){
+     if (((h > 200) && (h < 220)) && (s > 0.7) && (v > 60) && (v < 150)){
       return 1;
     }    
   }
