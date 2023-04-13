@@ -262,11 +262,11 @@ void dokola() {
   kam_ide = TOCI_SA;
   //digitalWrite(13, HIGH);
   motor_smer(MB, BLT);
-  motor_speed(MB, 5);
+  motor_speed(MB, 10);
   motor_smer(MR, RBWD);
-  motor_speed(MR, 5);
+  motor_speed(MR, 10);
   motor_smer(ML, LFWD);
-  motor_speed(ML, 5);
+  motor_speed(ML, 10);
 }
 
 
