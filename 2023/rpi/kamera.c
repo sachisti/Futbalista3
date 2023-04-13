@@ -12,6 +12,10 @@
 #include <unistd.h>
 #include "pngwriter.h"
 
+
+#define VYSKA_OBRAZU 1       //bolo to 2/3, skusime dat cely obraz
+
+
 //odkomentujte nasledovny riadok ak kamera nepodporuje BGR format
 //pozri v4l2-ctl -d /dev/videoX --list-formats
 
@@ -339,7 +343,7 @@ void najdi_veci(int *sirka_lopty, int *vyska_lopty, int *velkost_lopty, int *ria
       int doteraz_najv_riadok[3] = { 0, 0, 0 };
       int doteraz_najv_stlpec[3] = { 0, 0, 0 };
       
-      for (int i = 0; i < vyska * 2 / 3; i++)
+      for (int i = 0; i < vyska * VYSKA_OBRAZU; i++)
         for (int j = 0; j < sirka; j++)
         {
 #ifdef POUZI_YUV
