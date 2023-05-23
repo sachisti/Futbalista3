@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <tuple>
 #include "futbalista.h"
-#include <opencv2/opencv.hpp>
 
 #define MAX_SPEED 20
 
