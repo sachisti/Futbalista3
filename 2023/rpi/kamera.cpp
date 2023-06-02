@@ -1,96 +1,107 @@
-#include <opencv2/opencv.hpp>
-#include <iostream>
+#include "futbalista.h"
 
 using namespace std;
 using namespace cv;
 
-class KameraVec {
-public:
-    Scalar low, high; // hsv values
-    Point2f mid = {-1, -1};
-    KameraVec(int mh, int ms, int mv, int mxh, int mxs, int mxv) : low(mh, ms, mv), high(mxh, mxs, mxv) {}
+int CAMERA_INDEX = 0;
+VideoCapture cap(0);
 
-    int maxAreaContour(vector<vector<Point>> cnts) {
-        double ma = -1;
-        int id = -1;
-        for (int i = 0; i < cnts.size(); i++) {
-            double na = contourArea(cnts[i]);
-            if (na > ma) {
-                ma = na;
-                id = i;
-            }
-        }
-        return id;
-    }
-};
+Mat get_frame(){
+    Mat frame;
+    cap >> frame;
+}
 
-class Lopta : KameraVec {
-    int min_size = 5;
-public:
-    float r = -1;
-    using KameraVec::KameraVec;
+int setup_kamera(){
+    int s;
+    VideoCapture cap(CAMERA_INDEX);
+    s = cap.get(CAP_PROP_FRAME_WIDTH);
+    cap.release();
+    return s;
+}
 
-    void find(Mat frame) { // updates mid and r
-        cvtColor(frame, frame, COLOR_BGR2HSV);
-        blur(frame, frame, Point(3, 3));
-        Mat mask;
-        inRange(frame, low, high, mask);
-        erode(mask, mask, getStructuringElement(MORPH_ELLIPSE, Size(min_size, min_size)));
-        dilate(mask, mask, getStructuringElement(MORPH_ELLIPSE, Size(min_size, min_size)));
-        vector<vector<Point>> cnts;
-        findContours(mask, cnts, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
-        if (cnts.size() > 0) {
-            vector<Point> cnt = cnts[maxAreaContour(cnts)];
-            minEnclosingCircle(cnt, mid, r);
+KameraVec::KameraVec(int mh, int ms, int mv, int mxh, int mxs, int mxv) : low(mh, ms, mv), high(mxh, mxs, mxv){
+    mid = {-1, -1};
+}
+
+int KameraVec::maxAreaContour(vector<vector<Point>> cnts) {
+    double ma = -1;
+    int id = -1;
+    for (int i = 0; i < cnts.size(); i++) {
+        double na = contourArea(cnts[i]);
+        if (na > ma) {
+            ma = na;
+            id = i;
         }
     }
+    return id;
+}
 
-    void debug(Mat frame) {
-        find(frame);
-        circle(frame, mid, r, { 0, 255, 255 }, 2);
-        imshow("Ball tracking debug", frame);
+
+bool Lopta::find(Mat frame) { // updates mid and r
+    cvtColor(frame, frame, COLOR_BGR2HSV);
+    blur(frame, frame, Point(3, 3));
+    Mat mask;
+    inRange(frame, low, high, mask);
+    erode(mask, mask, getStructuringElement(MORPH_ELLIPSE, Size(min_size, min_size)));
+    dilate(mask, mask, getStructuringElement(MORPH_ELLIPSE, Size(min_size, min_size)));
+    vector<vector<Point>> cnts;
+    findContours(mask, cnts, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+    if (cnts.size() > 0) {
+        vector<Point> cnt = cnts[maxAreaContour(cnts)];
+        minEnclosingCircle(cnt, mid, r);
+        return 1;
     }
-};
+    return 0;
+}
 
-class Branka : KameraVec {
-    int min_size = 15;
-public:
-    float h = -1, w = -1;
-    using KameraVec::KameraVec;
+bool Lopta::find(){
+    
+    return find(get_frame());
+}
 
-    void find(Mat frame) { // updates mid, h, w
-        cvtColor(frame, frame, COLOR_BGR2HSV);
-        blur(frame, frame, Point(3, 3));
-        Mat mask;
-        inRange(frame, low, high, mask);
-        erode(mask, mask, getStructuringElement(MORPH_ELLIPSE, Size(min_size, min_size)));
-        dilate(mask, mask, getStructuringElement(MORPH_ELLIPSE, Size(min_size, min_size)));
-        vector<vector<Point>> cnts;
-        findContours(mask, cnts, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
-        if (cnts.size() > 0) {
-            vector<Point> cnt = cnts[maxAreaContour(cnts)];
-            RotatedRect rect;
-            rect = minAreaRect(cnt);
-            h = rect.size.height;
-            w = rect.size.width;
-            mid = rect.center;
-        }
+void Lopta::debug() {
+    Mat frame = get_frame();
+    Lopta::find(frame);
+    circle(frame, mid, r, { 0, 255, 255 }, 2);
+    imshow("Ball tracking debug", frame);
+}
+
+bool Branka::find(Mat frame) { // updates mid, h, w
+    cvtColor(frame, frame, COLOR_BGR2HSV);
+    blur(frame, frame, Point(3, 3));
+    Mat mask;
+    inRange(frame, low, high, mask);
+    erode(mask, mask, getStructuringElement(MORPH_ELLIPSE, Size(min_size, min_size)));
+    dilate(mask, mask, getStructuringElement(MORPH_ELLIPSE, Size(min_size, min_size)));
+    vector<vector<Point>> cnts;
+    findContours(mask, cnts, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+    if (cnts.size() > 0) {
+        vector<Point> cnt = cnts[maxAreaContour(cnts)];
+        RotatedRect rect;
+        rect = minAreaRect(cnt);
+        h = rect.size.height;
+        w = rect.size.width;
+        mid = rect.center;
+        return 1;
     }
+    return 0;
+}
 
-    void debug(Mat frame) {
-        find(frame);
-        rectangle(frame, { mid.x - w / 2, mid.y - h / 2 }, { mid.x + w / 2, mid.y + h / 2 }, { 0, 255, 255 }, 2);
-        imshow("Goal tracking debug", frame);
-    }
-};
+bool Branka::find(){
+    Mat frame;
+    cap >> frame;
+    return find(frame);
+}
+
+void Branka::debug() {
+    Mat frame = get_frame();
+    Branka::find(frame);
+    rectangle(frame, { mid.x - w / 2, mid.y - h / 2 }, { mid.x + w / 2, mid.y + h / 2 }, { 0, 255, 255 }, 2);
+    imshow("Goal tracking debug", frame);
+}
+
 
 void calibrate_camera() {
-    VideoCapture cap(0);
-
-    if (!cap.isOpened()) {
-        cout << "Error opening video stream or file" << endl;
-        return;
-    }
     namedWindow("ValueRange");
     namedWindow("SatRange");
     namedWindow("HueRange");
@@ -102,8 +113,7 @@ void calibrate_camera() {
     createTrackbar("Hue min", "HueRange", &mH, 255);
     createTrackbar("Hue max", "HueRange", &mxH, 255);
     while (1) {
-        Mat frame;// = imread("E:/DOKUMENTY_MACKO/.Programovanie/Sachista3/monke.jpg");
-        cap >> frame;
+        Mat frame = get_frame();// = imread("E:/DOKUMENTY_MACKO/.Programovanie/Sachista3/monke.jpg");
         if (frame.empty())
             break;
         // Press  ESC on keyboard to exit
@@ -139,29 +149,8 @@ void calibrate_camera() {
         resizeWindow("SatRange", Size(500, 500));
         resizeWindow("HueRange", Size(500, 500));
     }
-
-    cap.release();
     destroyAllWindows();
 
     return;
-}
-
-int main()
-{
-    //calibrate_camera();
-    
-    VideoCapture cap(0);
-    while(1){
-        // Press  ESC on keyboard to exit
-        char c = (char)waitKey(25);
-        if (c == 27) {
-            break;
-        }
-        
-        Mat frame;
-        cap >> frame;
-        imshow("Frame", frame);
-    }
-    return 0;
 }
     
