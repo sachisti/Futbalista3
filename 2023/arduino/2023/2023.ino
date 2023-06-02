@@ -19,11 +19,11 @@ void loop()
   
   strategia();
   
-  kontrola_senzorov();
+  //kontrola_senzorov();
   
   if (start_on())
   {   
-    zastav();
+    //zastav();
     while (start_on());
   }
 }

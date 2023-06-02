@@ -1,4 +1,4 @@
-#include "opencv2/opencv.hpp"
+#include <opencv2/opencv.hpp>
 #include <iostream>
 
 using namespace std;
@@ -113,30 +113,6 @@ void calibrate_camera() {
             cout << "miaxHSV: " << mxH << " " << mxS << " " << mxV << endl;
             break;
         }
-        /*
-        imshow("Frame", frame);
-        Rect trim(0, 0, frame.size().width, frame.size().height/2);
-        Mat trimed = frame(trim);
-        imshow("Trimed", trimed);
-
-        Mat gray;
-        cvtColor(trimed, gray, COLOR_BGR2GRAY);
-        imshow("Gray", gray);
-
-        Mat edges;
-        Sobel(gray, edges, CV_64F, 1, 1);
-        imshow("Edges", edges);
-
-        Mat red, hsv, hsvchannel[3];
-        cvtColor(trimed, hsv, COLOR_BGR2HSV);
-        blur(hsv, hsv, Size(5, 5));
-        split(hsv, hsvchannel);
-        Mat vts;
-        Scalar lowerBound = cv::Scalar(150, 100, 50);
-        Scalar upperBound = cv::Scalar(255, 255, 255);
-        inRange(hsv, lowerBound, upperBound, vts);
-        imshow("in range", vts);
-        */
         cvtColor(frame, frame, COLOR_BGR2HSV);
         blur(frame, frame, Point(3, 3));
         imshow("Defult", frame);
@@ -169,3 +145,23 @@ void calibrate_camera() {
 
     return;
 }
+
+int main()
+{
+    //calibrate_camera();
+    
+    VideoCapture cap(0);
+    while(1){
+        // Press  ESC on keyboard to exit
+        char c = (char)waitKey(25);
+        if (c == 27) {
+            break;
+        }
+        
+        Mat frame;
+        cap >> frame;
+        imshow("Frame", frame);
+    }
+    return 0;
+}
+    

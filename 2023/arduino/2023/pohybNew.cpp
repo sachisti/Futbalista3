@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <tuple>
 #include "futbalista.h"
 
 #define MAX_SPEED 20
@@ -13,10 +12,7 @@
 #define M3_IN1 2
 #define M3_IN2 3
 
-//Co? TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-// 1 - back
-// 2 - right
-// 3 - left
+
 #define MR  1
 #define ML  2
 #define MB  3
@@ -70,6 +66,21 @@ void setup_pohyb()
 	motor_smer(3, 0);
 }
 
+ISR(TIMER1_OVF_vect)
+{
+  if (t1_tick == 0)
+  {
+    digitalWrite(M1_IN1, on1);
+    digitalWrite(M2_IN1, on2);
+    digitalWrite(M3_IN1, on3);
+  }
+  if (t1_tick == r1) digitalWrite(M1_IN1, off1);
+  if (t1_tick == r2) digitalWrite(M2_IN1, off2);
+  if (t1_tick == r3) digitalWrite(M3_IN1, off3);
+  t1_tick++;
+  if (t1_tick >= 20) t1_tick = 0;
+}
+
 void motor_speed(uint8_t motor, uint8_t speed)
 {
 	switch (motor)
@@ -90,13 +101,14 @@ void motor_smer(uint8_t motor, uint8_t smer)
 	}
 }
 
-void set_speeds(double sl, double sr, double sb, int speed) {
-	sl /= max(max(sl, sr), sb); sl *= speed;
-	sr /= max(max(sl, sr), sb);	sr *= speed;
-	sb /= max(max(sl, sr), sb);	sb *= speed;
-
-	uint8_t fw = 0;
-	if (sl < 0) sl = -sl, fw = 1;
+void set_speeds(double sl, double sr, double sb, double speed) {
+  double ml = max(max(abs(sl), abs(sr)), abs(sb));
+	sl /= ml; sl *= speed;
+	sr /= ml;	sr *= speed;
+	sb /= ml;	sb *= speed;
+  
+	uint8_t fw = 1;
+	if (sl < 0) sl = -sl, fw = 0;
 	motor_speed(ML, (uint8_t)sl);
 	motor_smer(ML, fw);
 
@@ -111,7 +123,7 @@ void set_speeds(double sl, double sr, double sb, int speed) {
 	motor_smer(MB, fw);
 }
 
-// uhly kolies sú l = 120, r = 240, b = 0
+// uhly kolies su l = 120, r = 240, b = 0
 double a = -0.5, b = -0.5,  c = 1; //cos
 double d = 0.86, e = -0.86, f = 0; //sin
 double g = 1,    h = 1,     i = 1; //theta
@@ -123,8 +135,46 @@ double di = (g * f - d * i) / det, ei = (a * i - g * c) / det, fi = (d * c - a *
 double gi = (d * h - g * e) / det, hi = (g * b - a * h) / det, ii = (a * e - d * b) / det;
 
 void pohyb(double xs, double ys, double ws, int speed = MAX_SPEED) {
-	double sl = ai * xs + bi * ys + ci * w;
-	double sr = di * xs + ei * ys + fi * w;
-	double sb = gi * xs + hi * ys + ii * w;
+	double sl = ai * xs + bi * ys + ci * ws;
+	double sr = di * xs + ei * ys + fi * ws;
+	double sb = gi * xs + hi * ys + ii * ws;
+  Serial.print("sl: ");
+  Serial.println(sl);
+  Serial.print("sr: ");
+  Serial.println(sr);
+  Serial.print("sb: ");
+  Serial.println(sb);
 	set_speeds(sl, sr, sb, speed);
+}
+
+void test_motors()
+{
+  //for(int j = 0; j < 3; j++){
+    for(int ii = 0; ii < 8; ii++){
+      double a = PI/4 * ii;
+      double xs = cos(a);
+      double ys = sin(a);
+      Serial.print("xs: ");
+      Serial.println(xs);
+      Serial.print("ys: ");
+      Serial.println(ys);
+      double ws = 0;
+      pohyb(xs, ys, ws);
+      Serial.print("Motors: ");
+      Serial.print(r1);
+      Serial.print(" ");
+      Serial.print(r2);
+      Serial.print(" ");
+      Serial.print(r3);
+      Serial.println(" ");
+      Serial.println("********************************");
+      delay(1000);  
+    }
+  //}
+}
+
+void zastav_motory() {
+  motor_speed(ML, 0);
+  motor_speed(MR, 0);
+  motor_speed(MB, 0);
 }

@@ -8,7 +8,7 @@ void kontrola_senzorov()
 {
   if (vidi_ciaru()) 
   {
-    obrat_smer();
+    //obrat_smer();
     //Serial.println("vidi_ciaru() je true");
   }
 }

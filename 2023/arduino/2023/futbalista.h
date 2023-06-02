@@ -5,29 +5,11 @@
 // pohyb
 
 void setup_pohyb();
-void riadenie_cez_seriovy_port();
 
-void dolava();
-void doprava();
-void dokola();
-void dopredu();
-void zastav(); 
-void dolava_vzad();
-void doprava_vzad();
-void dozadu();
-
-void obrat_smer();
-
-
-void simple_test_motors();
 void motor_speed(uint8_t motor, uint8_t speed);
 void motor_smer(uint8_t motor, uint8_t smer);
-void test_motors2();
 void test_motors();
-
-void test_left_motor(int where);
-void test_right_motor(int where);
-void test_back_motor(int where);
+void zastav_motory();
 
 
 // vypinace
